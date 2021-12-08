@@ -2,10 +2,19 @@ import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 /*
 packet design
+index - 4
 padding - 4
 width - 4
 height -4
 cells - a lot
+ */
+
+/*
+Response design
+index - 4
+width -4
+height - 4
+values - a bunch
  */
 
 class Responder(val sChannel:SocketChannel) extends Runnable{
@@ -21,6 +30,7 @@ class Responder(val sChannel:SocketChannel) extends Runnable{
       bytesRead != 0
     }){}
     buff.flip()
+    val index = buff.getInt()
     val padding = buff.getInt()
     val width = buff.getInt()
     val height = buff.getInt()
@@ -37,13 +47,16 @@ class Responder(val sChannel:SocketChannel) extends Runnable{
         val neighbors = getNeighbors(i,j,cells)
         val oldCell = cells(i)(j)
 
-        val thermConsts = (neighbors(0).cm1, neighbors(0).cm2, neighbors(0).cm3)
+
         val partTemps = neighbors.map(p => p.tempProps()).reduce((a, b) => ((a._1 + b._1), (a._2 + b._2), (a._3 + b._3)))
         val adjusted: (Double, Double, Double) = ((partTemps._1 * oldCell.cm1), ((partTemps._2 * oldCell.cm2)), ((partTemps._3 * oldCell.cm3)))
         (adjusted._1 + adjusted._2 + adjusted._3) / neighbors.length //new temp
       }
     }
     buff.clear()
+    buff.putInt(index)
+    buff.putInt(br.x-tl.x) //width
+    buff.putInt(br.y-tl.y) //height
     out.flatten.foreach(p => buff.putDouble(p))
     buff.flip()
     sChannel.write(buff)
