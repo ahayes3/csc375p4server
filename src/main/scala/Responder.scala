@@ -35,6 +35,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
         totalBytes += bytesRead
         (bytesRead != 0 || totalBytes != 8)
       }) {}
+      sizeBuff.flip()
       val width = sizeBuff.getInt()
       val height = sizeBuff.getInt()
 
