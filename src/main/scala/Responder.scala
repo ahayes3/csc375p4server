@@ -33,7 +33,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
         if (bytesRead == -1)
           throw new SocketException("Connection closed")
         totalBytes += bytesRead
-        (bytesRead != 0 || totalBytes != 8)
+        (totalBytes != 8)
       }) {}
       sizeBuff.flip()
       val width = sizeBuff.getInt()
@@ -51,6 +51,8 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       buff.flip()
       val index = buff.getInt()
       val padding = buff.getInt()
+      buff.getInt()
+      buff.getInt()
       //      val width = buff.getInt()
       //      val height = buff.getInt()
       val tl = Coord(if ((padding & Padding.LEFT) == Padding.LEFT) 1 else 0, if ((padding & Padding.TOP) == Padding.TOP) 1 else 0)
