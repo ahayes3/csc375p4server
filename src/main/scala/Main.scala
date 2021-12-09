@@ -7,7 +7,14 @@ object Main {
   def main(args: Array[String]): Unit = {
     val server = ServerSocketChannel.open()
     server.configureBlocking(false)
-    val port = 8001
+    var port = 8001 //default
+    for(i <- args.indices) {
+      if(args(i) == "-p" && args.length > i+1) {
+        port = args(i+1).toInt
+      }
+
+    }
+
     server.socket().bind(new InetSocketAddress(port))
     //todo wait until connection, fork
     while(true) {
