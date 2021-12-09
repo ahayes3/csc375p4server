@@ -42,6 +42,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       val bytesToRead = 16 + (8 * 7 * width * height)
       totalBytes = 0
       while ( {
+        println("stuck1")
         val bytesRead = sChannel.read(buff)
         if (bytesRead == -1)
           throw new SocketException("Connection closed")
@@ -83,6 +84,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       buff.flip()
       var t = 0
       while ( {
+        println("stuck2")
         val written = sChannel.write(buff)
         t += written
         //println(s"Wrote index $index")
@@ -92,6 +94,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       val tmp = ByteBuffer.allocate(4)
       var tot = 0
       while ( {
+        println("stuck3")
         val read = sChannel.read(tmp)
         tot += read
         if (tot == 4) {
