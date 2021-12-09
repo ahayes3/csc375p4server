@@ -94,9 +94,11 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       val tmp = ByteBuffer.allocate(4)
       var tot = 0
       while ( {
-        println("stuck3")
+        //println("stuck3")
         val read = sChannel.read(tmp)
         tot += read
+        if(read > 0)
+          println("did a read")
         if (tot == 4) {
           tmp.flip()
           if (tmp.getInt() == -2)
