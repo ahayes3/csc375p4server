@@ -1,6 +1,7 @@
 import java.net.SocketException
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
+
 /*
 packet design
 index - 4
@@ -18,25 +19,39 @@ height - 4
 values - a bunch
  */
 
-class Responder(val sChannel:SocketChannel) extends Runnable{
+class Responder(val sChannel: SocketChannel) extends Runnable {
   val buffSize = 10000
   val buff = ByteBuffer.allocate(buffSize)
+
   override def run(): Unit = {
     try {
       var totalBytes = 0
       sChannel.configureBlocking(false)
+      val sizeBuff = ByteBuffer.allocate(8)
       while ( {
         val bytesRead = sChannel.read(buff)
         if (bytesRead == -1)
           throw new SocketException("Connection closed")
         totalBytes += bytesRead
-        (bytesRead != 0 || totalBytes ==0)
+        (bytesRead != 0 || totalBytes != 8)
+      }) {}
+      val width = sizeBuff.getInt()
+      val height = sizeBuff.getInt()
+
+      val bytesToRead = 16 + (8 * 7 * width * height)
+      totalBytes = 0
+      while ( {
+        val bytesRead = sChannel.read(buff)
+        if (bytesRead == -1)
+          throw new SocketException("Connection closed")
+        totalBytes += bytesRead
+        (bytesRead != 0 || totalBytes == 0)
       }) {}
       buff.flip()
       val index = buff.getInt()
       val padding = buff.getInt()
-      val width = buff.getInt()
-      val height = buff.getInt()
+      //      val width = buff.getInt()
+      //      val height = buff.getInt()
       val tl = Coord(if ((padding & Padding.LEFT) == Padding.LEFT) 1 else 0, if ((padding & Padding.TOP) == Padding.TOP) 1 else 0)
       val br = Coord(if ((padding & Padding.RIGHT) == Padding.RIGHT) width - 1 else width, if ((padding & Padding.BOTTOM) == Padding.BOTTOM) height - 1 else height)
       val cells = for (i <- 0 until width) yield {
@@ -63,7 +78,7 @@ class Responder(val sChannel:SocketChannel) extends Runnable{
       buff.putInt(br.y - tl.y) //height
       out.flatten.foreach(p => buff.putDouble(p))
       buff.flip()
-      var t=0
+      var t = 0
       while ( {
         val written = sChannel.write(buff)
         t += written
@@ -72,7 +87,7 @@ class Responder(val sChannel:SocketChannel) extends Runnable{
       }) {}
       println(s"Index $index   Total bytes: $t")
       val tmp = ByteBuffer.allocate(4)
-      var tot=0
+      var tot = 0
       while ( {
         val read = sChannel.read(tmp)
         tot += read
@@ -90,11 +105,12 @@ class Responder(val sChannel:SocketChannel) extends Runnable{
 
       sChannel.close()
     } catch {
-      case e:SocketException => sChannel.close()
+      case e: SocketException => sChannel.close()
     }
     //sChannel.close() //might cause end before all written
 
   }
+
   def getNeighbors(x: Int, y: Int, arr: Seq[Seq[Cell]]): IndexedSeq[Cell] = {
     var neighbors = IndexedSeq[Cell]()
     if (x > 0)
