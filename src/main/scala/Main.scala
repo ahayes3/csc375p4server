@@ -19,8 +19,10 @@ object Main {
     //todo wait until connection, fork
     while(true) {
       val a = server.accept()
-      if(a!= null)
+      if(a!= null) {
+        println("accepted one")
         new Thread(new Responder(a)).start()
+      }
 
     }
   }
