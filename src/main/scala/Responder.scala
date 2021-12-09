@@ -29,7 +29,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
       sChannel.configureBlocking(false)
       val sizeBuff = ByteBuffer.allocate(8)
       while ( {
-        val bytesRead = sChannel.read(buff)
+        val bytesRead = sChannel.read(sizeBuff)
         if (bytesRead == -1)
           throw new SocketException("Connection closed")
         totalBytes += bytesRead
@@ -45,7 +45,7 @@ class Responder(val sChannel: SocketChannel) extends Runnable {
         if (bytesRead == -1)
           throw new SocketException("Connection closed")
         totalBytes += bytesRead
-        (bytesRead != 0 || totalBytes == 0)
+        (totalBytes != bytesToRead)
       }) {}
       buff.flip()
       val index = buff.getInt()
